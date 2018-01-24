@@ -2,6 +2,7 @@ package com.fhd.devopsbuddy.config;
 
 import com.fhd.devopsbuddy.backend.service.EmailService;
 import com.fhd.devopsbuddy.backend.service.MockEmailService;
+import com.fhd.devopsbuddy.backend.service.UserService;
 import org.h2.server.web.WebServlet;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;

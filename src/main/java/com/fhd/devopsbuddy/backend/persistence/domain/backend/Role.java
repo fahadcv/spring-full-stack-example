@@ -1,5 +1,7 @@
 package com.fhd.devopsbuddy.backend.persistence.domain.backend;
 
+import com.fhd.devopsbuddy.enums.RolesEnum;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.HashSet;
@@ -32,6 +34,11 @@ public class Role implements Serializable {
 
     }
 
+    public Role(RolesEnum rolesEnum) {
+        this.id = rolesEnum.getId();
+        this.name = rolesEnum.getRoleName();
+
+    }
     public int getId() {
         return id;
     }
