@@ -2,11 +2,11 @@ package com.fhd.devopsbuddy.utils;
 
 import com.fhd.devopsbuddy.backend.persistence.domain.backend.User;
 
-public class UsersUtils {
+public class UserUtils {
     /**
      * Non instantiable.
      */
-    private UsersUtils() {
+    private UserUtils() {
         throw new AssertionError("Non instantiable");
     }
 
