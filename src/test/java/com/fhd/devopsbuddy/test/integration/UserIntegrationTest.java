@@ -28,16 +28,9 @@ import java.util.Set;
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = DevopsbuddyApplication.class)
-public class RepositoriesIntegrationTest {
+public class UserIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private PlanRepository planRepository;
 
-    @Autowired
-    private RoleRepository roleRepository ;
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Rule public TestName testName = new TestName();
 
@@ -93,50 +86,4 @@ public class RepositoriesIntegrationTest {
         userRepository.delete(basicUser.getId());
     }
 
-    //-----------------> Private methods
-
-    private Plan createPlan(PlansEnum plansEnum) {
-        return new Plan(plansEnum);
-    }
-
-    private Role createRole(RolesEnum rolesEnum) {
-
-        return new Role(rolesEnum);
-    }
-
-    private User createBasicUser() {
-
-        User user = new User();
-        user.setUsername("basicUser");
-        user.setPassword("secret");
-        user.setEmail("me@example.com");
-        user.setFirstName("firstName");
-        user.setLastName("lastName");
-        user.setPhoneNumber("123456789123");
-        user.setCountry("GB");
-        user.setEnabled(true);
-        user.setDescription("A basic user");
-        user.setProfileImageUrl("https://blabla.images.com/basicuser");
-
-        return user;
-    }
-
-    private User createUser(String username, String email) {
-        Plan basicPlan = createPlan(PlansEnum.BASIC);
-        planRepository.save(basicPlan);
-
-        User basicUser = UserUtils.createBasicUser(username, email);
-        basicUser.setPlan(basicPlan);
-
-        Role basicRole = createRole(RolesEnum.BASIC);
-        roleRepository.save(basicRole);
-
-        Set<UserRole> userRoles = new HashSet<>();
-        UserRole userRole = new UserRole(basicUser, basicRole);
-        userRoles.add(userRole);
-
-        basicUser.getUserRoles().addAll(userRoles);
-        basicUser = userRepository.save(basicUser);
-        return basicUser;
-    }
 }
