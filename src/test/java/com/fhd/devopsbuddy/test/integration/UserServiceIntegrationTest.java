@@ -19,12 +19,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = DevopsbuddyApplication.class)
-public class UserServiceIntegrationTest {
+public class UserServiceIntegrationTest extends AbstractServiceIntegrationTest {
 
     @Autowired
     private UserService userService;
@@ -45,5 +46,25 @@ public class UserServiceIntegrationTest {
         Assert.assertNotNull(user.getId());
 
     }
+
+//    @Test
+//    public void testUpdateUserPassword() throws Exception {
+//        String username = testName.getMethodName();
+//        String email = testName.getMethodName() + "@devopsbuddy.com";
+//
+//        Set<UserRole> userRoles = new HashSet<>();
+//        User basicUser = UserUtils.createBasicUser(username, email);
+//        userRoles.add(new UserRole(basicUser, new Role(RolesEnum.BASIC)));
+//
+//        User user = userService.createUser(basicUser, PlansEnum.BASIC, userRoles);
+//        Assert.assertNotNull(user);
+//        Assert.assertNotNull(user.getId());
+//
+//        String newPasswd = UUID.randomUUID().toString();
+//        userService.updateUserPassword(user.getId(), newPasswd);
+//
+//        User updateUser = userService.
+//
+//    }
 }
 
