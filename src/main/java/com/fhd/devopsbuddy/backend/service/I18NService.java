@@ -1,4 +1,4 @@
-package com.fhd.devopsbuddy.web.i18n;
+package com.fhd.devopsbuddy.backend.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;

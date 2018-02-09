@@ -232,5 +232,24 @@ public class User implements Serializable, UserDetails {
         return (int) (id ^ (id >>> 32));
     }
 
-
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", email='" + email + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", description='" + description + '\'' +
+                ", country='" + country + '\'' +
+                ", profileImageUrl='" + profileImageUrl + '\'' +
+                ", stripeCustomerId='" + stripeCustomerId + '\'' +
+                ", enabled=" + enabled +
+                ", plan=" + plan +
+                ", userRoles=" + userRoles +
+                ", passwordResetTokens=" + passwordResetTokens +
+                '}';
+    }
 }

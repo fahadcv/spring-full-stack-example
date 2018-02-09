@@ -38,13 +38,18 @@ public class PasswordResetTokenService {
 
         PasswordResetToken passwordResetToken = null;
 
+        Iterable<User> alusers = userRepository.findAll();
+        for(User user: alusers) {
+            System.out.println(" user ::>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  " + user);
+        }
         User user = userRepository.findByEmail(email);
 
         if (null != user) {
+            System.out.println("FOUND user ::>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  " + user);
             String token = UUID.randomUUID().toString();
             LocalDateTime now = LocalDateTime.now(Clock.systemUTC());
             passwordResetToken = new PasswordResetToken(token, user, now, tokenExpirationInMinutes);
-
+            System.out.println(" passwordResetTokenRepository.save()  " + passwordResetToken);
             passwordResetToken = passwordResetTokenRepository.save(passwordResetToken);
             LOG.debug("Successfully created token {}  for user {}", token, user.getUsername());
 
