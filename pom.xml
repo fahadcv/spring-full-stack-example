@@ -82,6 +82,11 @@
 			<artifactId>commons-io</artifactId>
 			<version>LATEST</version>
 		</dependency>
+		<dependency>
+			<groupId>com.stripe</groupId>
+			<artifactId>stripe-java</artifactId>
+			<version>1.40.0</version>
+		</dependency>
 		<!-- Test dependencies -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

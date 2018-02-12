@@ -18,6 +18,7 @@ public class Plan implements Serializable {
 
     private String name;
 
+    private String planId;
     /** Default constructor. */
     public Plan() {
 
@@ -26,6 +27,7 @@ public class Plan implements Serializable {
     public Plan(PlansEnum plansEnum) {
         this.id = plansEnum.getId();
         this.name = plansEnum.getPlanName();
+        this.planId = plansEnum.getStripePlanId();
     }
     public int getId() {
         return id;
@@ -41,6 +43,11 @@ public class Plan implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+
+    public String getPlanId() {
+        return planId;
     }
 
     @Override
