@@ -5,6 +5,7 @@ import com.fhd.devopsbuddy.backend.persistence.domain.backend.Role;
 import com.fhd.devopsbuddy.backend.persistence.domain.backend.User;
 import com.fhd.devopsbuddy.backend.persistence.domain.backend.UserRole;
 import com.fhd.devopsbuddy.backend.service.PlanService;
+import com.fhd.devopsbuddy.backend.service.S3Service;
 import com.fhd.devopsbuddy.backend.service.UserService;
 import com.fhd.devopsbuddy.enums.PlansEnum;
 import com.fhd.devopsbuddy.enums.RolesEnum;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -43,6 +45,8 @@ public class SignupController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private S3Service s3Service;
 
     public static final String SIGNUP_URL_MAPPING = "/signup";
 
@@ -73,7 +77,7 @@ public class SignupController {
                              @RequestParam(name = "file", required = false) MultipartFile file,
                              @ModelAttribute(PAYLOAD_MODEL_KEY_NAME) @Valid ProAccountPayload payload,
                              ModelMap model
-                             ){
+                             ) throws IOException {
 
         if (planId != PlansEnum.BASIC.getId() && planId != PlansEnum.PRO.getId()) {
             model.addAttribute(SIGNED_UP_MESSAGE_KEY, "false");
@@ -109,7 +113,8 @@ public class SignupController {
 
         // Stores the profile image on Amazon S3 and stores the URL in the user's record
         if (file != null && !file.isEmpty()) {
-            String profileImageUrl = null;
+            String profileImageUrl = s3Service.storeProfileImage(file, payload.getUsername());
+
             if(profileImageUrl != null) {
                 user.setProfileImageUrl(profileImageUrl);
             } else {
