@@ -10,6 +10,8 @@ import com.fhd.devopsbuddy.backend.service.StripeService;
 import com.fhd.devopsbuddy.backend.service.UserService;
 import com.fhd.devopsbuddy.enums.PlansEnum;
 import com.fhd.devopsbuddy.enums.RolesEnum;
+import com.fhd.devopsbuddy.exceptions.S3Exception;
+import com.fhd.devopsbuddy.exceptions.StripeException;
 import com.fhd.devopsbuddy.utils.StripeUtils;
 import com.fhd.devopsbuddy.utils.UserUtils;
 import com.fhd.devopsbuddy.web.domain.frontend.BasicAccountPayload;
@@ -24,14 +26,19 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.io.IOException;
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,7 +48,9 @@ import java.util.Set;
 
 @Controller
 public class SignupController {
-    /** The application logger */
+    /**
+     * The application logger
+     */
     private static final Logger LOG = LoggerFactory.getLogger(SignupController.class);
 
     @Autowired
@@ -70,6 +79,8 @@ public class SignupController {
 
     public static final String ERROR_MESSAGE_KEY = "message";
 
+    public static final String GENERIC_ERROR_VIEW_NAME = "error/genericError";
+
     @RequestMapping(value = SIGNUP_URL_MAPPING, method = RequestMethod.GET)
     public String signupGet(@RequestParam("planId") int planId, ModelMap model) {
 
@@ -85,7 +96,7 @@ public class SignupController {
                              @RequestParam(name = "file", required = false) MultipartFile file,
                              @ModelAttribute(PAYLOAD_MODEL_KEY_NAME) @Valid ProAccountPayload payload,
                              ModelMap model
-                             ) throws IOException {
+    ) throws IOException {
 
         if (planId != PlansEnum.BASIC.getId() && planId != PlansEnum.PRO.getId()) {
             model.addAttribute(SIGNED_UP_MESSAGE_KEY, "false");
@@ -111,7 +122,7 @@ public class SignupController {
             duplicates = true;
         }
 
-        if(duplicates) {
+        if (duplicates) {
             model.addAttribute(ERROR_MESSAGE_KEY, errorMessages);
             return SUBSCRIPTION_VIEW_NAME;
         }
@@ -123,7 +134,7 @@ public class SignupController {
         if (file != null && !file.isEmpty()) {
             String profileImageUrl = s3Service.storeProfileImage(file, payload.getUsername());
 
-            if(profileImageUrl != null) {
+            if (profileImageUrl != null) {
                 user.setProfileImageUrl(profileImageUrl);
             } else {
                 LOG.warn("There was a problem uploading the profile image to S3. The user's profile will be created without the image");
@@ -131,7 +142,7 @@ public class SignupController {
         }
         LOG.debug("Retrieving plan from the database");
         Plan selectedPlan = planService.findPlanById(planId);
-        if(null == selectedPlan) {
+        if (null == selectedPlan) {
             LOG.error("The plan id {} could not be found. Throwing exception.", planId);
             model.addAttribute(SIGNED_UP_MESSAGE_KEY, "false");
             model.addAttribute(ERROR_MESSAGE_KEY, "Plan id not found");
@@ -141,27 +152,27 @@ public class SignupController {
         user.setPlan(selectedPlan);
         Set<UserRole> roles = new HashSet<>();
         User registeredUser = null;
-        if(planId == PlansEnum.BASIC.getId()) {
+        if (planId == PlansEnum.BASIC.getId()) {
             roles.add(new UserRole(user, new Role(RolesEnum.BASIC)));
             registeredUser = userService.createUser(user, PlansEnum.BASIC, roles);
         } else {
             // Extra precaution in case the POST method is invoked programmatically
             if (StringUtils.isEmpty(payload.getCardCode()) ||
-                            StringUtils.isEmpty(payload.getCardNumber()) ||
-                            StringUtils.isEmpty(payload.getCardMonth()) ||
-                            StringUtils.isEmpty(payload.getCardYear())) {
-                    LOG.error("One or more credit card fields is null or empty. Returning error to the user");
-                    model.addAttribute(SIGNED_UP_MESSAGE_KEY, "false");
-                    model.addAttribute(ERROR_MESSAGE_KEY, "One of more credit card details is null or empty.");
-                    return SUBSCRIPTION_VIEW_NAME;
+                    StringUtils.isEmpty(payload.getCardNumber()) ||
+                    StringUtils.isEmpty(payload.getCardMonth()) ||
+                    StringUtils.isEmpty(payload.getCardYear())) {
+                LOG.error("One or more credit card fields is null or empty. Returning error to the user");
+                model.addAttribute(SIGNED_UP_MESSAGE_KEY, "false");
+                model.addAttribute(ERROR_MESSAGE_KEY, "One of more credit card details is null or empty.");
+                return SUBSCRIPTION_VIEW_NAME;
 
             }
             roles.add(new UserRole(user, new Role(RolesEnum.PRO)));
             // If the user has selected the pro account, creates the Stripe customer to store the stripe customer id in
-                    // the db
-                            Map<String, Object> stripeTokenParams = StripeUtils.extractTokenParamsFromSignupPayload(payload);
+            // the db
+            Map<String, Object> stripeTokenParams = StripeUtils.extractTokenParamsFromSignupPayload(payload);
 
-                    Map<String, Object> customerParams = new HashMap<>();
+            Map<String, Object> customerParams = new HashMap<>();
             customerParams.put("description", "DevOps Buddy customer. Username: " + payload.getUsername());
             customerParams.put("email", payload.getEmail());
             customerParams.put("plan", selectedPlan.getPlanId());
@@ -169,7 +180,7 @@ public class SignupController {
             String stripeCustomerId = stripeService.createCustomer(stripeTokenParams, customerParams);
             LOG.info("Username: {} has been subscribed to Stripe", payload.getUsername());
 
-                    user.setStripeCustomerId(stripeCustomerId);
+            user.setStripeCustomerId(stripeCustomerId);
             registeredUser = userService.createUser(user, PlansEnum.PRO, roles);
         }
 
@@ -184,13 +195,26 @@ public class SignupController {
         return SUBSCRIPTION_VIEW_NAME;
     }
 
+    @ExceptionHandler({StripeException.class, S3Exception.class})
+    public ModelAndView signupException(HttpServletRequest request, Exception exception) {
+
+        LOG.error("Request {} raised exception {}", request.getRequestURL(), exception);
+
+        ModelAndView mav = new ModelAndView();
+        mav.addObject("exception", exception);
+        mav.addObject("url", request.getRequestURL());
+        mav.addObject("timestamp", LocalDate.now(Clock.systemUTC()));
+        mav.setViewName(GENERIC_ERROR_VIEW_NAME);
+        return mav;
+    }
+
     //--------------> Private methods
 
     private void checkForDuplicates(BasicAccountPayload payload, ModelMap model) {
-        if(userService.findByUserName(payload.getUsername()) != null) {
+        if (userService.findByUserName(payload.getUsername()) != null) {
             model.addAttribute(DUPLICATED_USERNAME_KEY, true);
         }
-        if(userService.findByEmail(payload.getEmail()) != null) {
+        if (userService.findByEmail(payload.getEmail()) != null) {
             model.addAttribute(DUPLICATED_EMAIL_KEY, true);
         }
     }
