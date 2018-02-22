@@ -10,6 +10,7 @@ DROP TABLE IF EXISTS plan;
 --
 CREATE TABLE `plan` (
   `id` tinyint(4) NOT NULL,
+  `plan_id` char(30),
   `name` char(30) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -85,8 +86,8 @@ CREATE TABLE `password_reset_token` (
 COMMIT;
 
 
-INSERT INTO plan VALUES ('1', 'Basic');
-INSERT INTO plan VALUES ('2', 'Pro');
+INSERT INTO plan VALUES ('1', null, 'Basic');
+INSERT INTO plan VALUES ('2', 'plan_CJJPydPKJ9gtX7', 'Pro');
 
 INSERT INTO role VALUES (1, 'ROLE_BASIC');
 INSERT INTO role VALUES (2, 'ROLE_PRO');

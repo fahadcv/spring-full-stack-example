@@ -1,9 +1,11 @@
 package com.fhd.devopsbuddy.backend.persistence.domain.backend;
 
+import com.fhd.devopsbuddy.backend.persistence.converters.LocalDateTimeAttributeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -13,7 +15,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Entity
 public class PasswordResetToken implements Serializable {
@@ -37,6 +38,7 @@ public class PasswordResetToken implements Serializable {
     private User user;
 
     @Column(name = "expiry_date")
+    @Convert(converter = LocalDateTimeAttributeConverter.class)
     private LocalDateTime expiryDate;
 
     public PasswordResetToken() {}
